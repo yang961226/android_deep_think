@@ -1,15 +1,18 @@
 module.exports = {
     title: '安卓现代化开发',
-    description: '我是描述',
-    base: "./",
+    description: '这里提供安卓现代化开发参考文档，适合新手和进阶开发。',
+    // base: "./",
     theme: 'reco',
+    markdown: {
+        lineNumbers: true // 代码块显示行号
+    },
     themeConfig: {
         nav: [
             {text: "首页", link: "/"},
             {
-                text: "晴天小庭的博客",
+                text: "晴天小庭",
                 items: [
-                    {text: "掘金", link: "https://juejin.cn/user/114798491603527"},
+                    {text: "掘金主页", link: "https://juejin.cn/user/114798491603527"},
                 ]
             },
         ],
@@ -18,14 +21,14 @@ module.exports = {
                 title: "欢迎学习",
                 path: "/",
                 collapsable: false,  // 是否折叠
-                children: [{title: "博客简介", path: "/"}],
+                children: [{title: "简介", path: "/"}],
             },
             {
-                title: "基础篇",
-                path: "/blogs/1",
+                title: "学习目录",
+                path: "/blogs/生命周期",
                 collapsable: true,
                 children: [
-                    {title: "第一篇", path: "/blogs/1"},
+                    {title: "生命周期与Lifecycle", path: "/blogs/生命周期"},
                     {title: "第二篇", path: "/blogs/2"},
                 ]
             }
