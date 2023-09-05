@@ -1,10 +1,10 @@
 module.exports = {
-    title: '安卓现代化开发',
+    title: '安卓现代化开发指南',
     description: '这里提供安卓现代化开发参考文档，适合新手和进阶开发。',
     // base: "./",
     theme: 'reco',
     markdown: {
-        lineNumbers: true // 代码块显示行号
+        lineNumbers: true
     },
     themeConfig: {
         nav: [
