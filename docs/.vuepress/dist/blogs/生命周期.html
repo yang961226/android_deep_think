@@ -9,11 +9,11 @@
     <meta content="这里提供安卓现代化开发参考文档，适合新手和进阶开发。" name="description">
 
     <link as="style" href="/assets/css/0.styles.11bd2d71.css" rel="preload">
-    <link as="script" href="/assets/js/app.217d21d8.js" rel="preload">
+    <link as="script" href="/assets/js/app.9584fa7d.js" rel="preload">
     <link as="script" href="/assets/js/7.082ea9f7.js" rel="preload">
     <link as="script" href="/assets/js/2.5a3fa7ef.js" rel="preload">
     <link as="script" href="/assets/js/1.85402d3b.js" rel="preload">
-    <link as="script" href="/assets/js/40.46297f62.js" rel="preload">
+    <link as="script" href="/assets/js/40.095a4831.js" rel="preload">
     <link href="/assets/js/10.24504dae.js" rel="prefetch">
     <link href="/assets/js/11.998bbd30.js" rel="prefetch">
     <link href="/assets/js/14.80208486.js" rel="prefetch">
@@ -41,8 +41,8 @@
     <link href="/assets/js/35.508d8f22.js" rel="prefetch">
     <link href="/assets/js/36.b79cd8bd.js" rel="prefetch">
     <link href="/assets/js/37.81a2730f.js" rel="prefetch">
-    <link href="/assets/js/38.3379de79.js" rel="prefetch">
-    <link href="/assets/js/39.867474cb.js" rel="prefetch">
+    <link href="/assets/js/38.be75effe.js" rel="prefetch">
+    <link href="/assets/js/39.b11f9435.js" rel="prefetch">
     <link href="/assets/js/4.94362d1c.js" rel="prefetch">
     <link href="/assets/js/5.b79f03bd.js" rel="prefetch">
     <link href="/assets/js/6.1e1ba6a8.js" rel="prefetch">
@@ -52,13 +52,13 @@
     <link href="/assets/css/0.styles.11bd2d71.css" rel="stylesheet">
 </head>
 <body>
-<div data-server-rendered="true" id="app">
+<div id="app" data-server-rendered="true">
     <div class="theme-container" data-v-7dd95ae2>
         <div data-v-7dd95ae2>
             <div class="password-shadow password-wrapper-out" data-v-59e6cb88 data-v-7dd95ae2 data-v-7dd95ae2
                  style="display:none;"><h3 class="title" data-v-59e6cb88>安卓现代化开发指南</h3>
                 <p class="description" data-v-59e6cb88>这里提供安卓现代化开发参考文档，适合新手和进阶开发。</p> <label
-                        class="inputBox" data-v-59e6cb88 id="box"><input data-v-59e6cb88 type="password" value=""> <span
+                        id="box" class="inputBox" data-v-59e6cb88><input data-v-59e6cb88 type="password" value=""> <span
                         data-v-59e6cb88>Konck! Knock!</span>
                     <button data-v-59e6cb88>OK</button>
                 </label>
@@ -178,18 +178,15 @@
                                 <ul class="sidebar-links sidebar-group-items">
                                     <li><a class="active sidebar-link"
                                            href="/blogs/生命周期.html">生命周期与Lifecycle</a></li>
-                                    <li><a class="sidebar-link" href="/blogs/2.html">第二篇</a></li>
                                 </ul>
                             </section>
                         </li>
                     </ul>
                 </aside>
                 <div class="password-shadow password-wrapper-in" data-v-59e6cb88 data-v-7dd95ae2 style="display:none;">
-                    <h3 class="title" data-v-59e6cb88>生命周期</h3> <!----> <label class="inputBox" data-v-59e6cb88
-                                                                                   id="box"><input data-v-59e6cb88
-                                                                                                   type="password"
-                                                                                                   value=""> <span
-                        data-v-59e6cb88>Konck! Knock!</span>
+                    <h3 class="title" data-v-59e6cb88>生命周期</h3> <!----> <label id="box" class="inputBox"
+                                                                                   data-v-59e6cb88><input
+                        data-v-59e6cb88 type="password" value=""> <span data-v-59e6cb88>Konck! Knock!</span>
                     <button data-v-59e6cb88>OK</button>
                 </label>
                     <div class="footer" data-v-59e6cb88><span data-v-59e6cb88><i class="iconfont reco-theme"
@@ -213,15 +210,105 @@
                                                                                    data-v-8a445198><span
                                             data-v-8a445198>9/4/2023</span></i> <!----> <!----></div>
                                 </div>
-                                <div class="theme-reco-content content__default"></div>
+                                <div class="theme-reco-content content__default"><h1 id="_1-生命周期的前世今生"><a
+                                        class="header-anchor" href="#_1-生命周期的前世今生">#</a> 1.生命周期的前世今生
+                                </h1>
+                                    <h3 id="_1-1-前世-初识篇"><a class="header-anchor" href="#_1-1-前世-初识篇">#</a>
+                                        1.1.前世——初识篇</h3>
+                                    <p>天地初开，一切皆为混沌的时代，安卓宇宙中诞生了名为<code>Activity</code>（活动）的组件，<code>Activity</code>是Android应用中最关键的组件，一个<code>Activity</code>通常对应的是App的一个页面，当手机使用者在不同的页面之间导航的时候，新的<code>Activity</code>会诞生，同时也会在特定的时候销毁。一个页面的诞生之初到它销毁的这段时间，名为「生命周期」。
+                                    </p>
+                                    <p>
+                                        理解并掌握生命周期是每一个Android修炼者的必修功力，因为生命周期的每一个阶段均代表<code>Activity</code>处于不同的状态之中，一旦错误处理生命周期周期，修炼者轻则内伤残疾（手机耗电过多，丢失信息），重则走火入魔（程序崩溃）。
+                                    </p>
+                                    <p>
+                                        关于生命周期，江湖中一直流传着一张「Activity生命周期总览图」，但个中奥秘，却鲜为人知，因此少有人能够修炼到最高境界：</p>
+                                    <center><img alt="Activity生命周期"
+                                                 src="https://developer.android.google.cn/guide/components/images/activity_lifecycle.png?hl=zh-cn"
+                                                 style="zoom:67%;"></center>
+                                    <p>由图可见，<code>Activity</code>的生命周期中，提供了6种回调：<code>onCreate()</code>、<code>onStart()</code>、<code>onResume()</code>、<code>onPause()</code>、<code>onStop()</code>、<code>onDestroy()</code>，需要特别注意的是，这<strong>仅仅</strong>是一种回调，与我们通常的认识不同都是，生命周期的某个阶段是指一个<strong>时间段</strong>，而回调或者说事件只是一个瞬间，换句话来说，onCreate并不是指生命周期中存在一个阶段名为onCreate，而是<code>Activity</code>触发了onCreate事件，即将进入已创建阶段。
+                                    </p>
+                                    <p>
+                                        然而可惜的是，在远古Android的设计中，Android的创世神并没有为开发者提供具体的生命周期阶段的概念，仅仅是提供了进入某个生命周期阶段的回调，因此上述提到的“<strong>已创建</strong>”在原生安卓的概念中并不存在。然而在后人的努力中，生命周期阶段这一概念最终得到确定与落实，不过这都是后话了。
+                                    </p>
+                                    <h3 id="_1-2-前世-详解篇"><a class="header-anchor" href="#_1-2-前世-详解篇">#</a>
+                                        1.2.前世——详解篇</h3> <h4 id="_1-2-1-oncreate-、ondestroy"><a
+                                            class="header-anchor" href="#_1-2-1-oncreate-、ondestroy">#</a>
+                                        1.2.1.onCreate()、onDestroy()</h4>
+                                    <ul>
+                                        <li><p><strong>onCreate()</strong>：<code>Activity</code>生命周期的起点，首次被系统创建时触发，整个生命周期只会触发一次。此回调通常用于执行页面View的设置，例如<code>setContentView()</code>。
+                                        </p></li>
+                                        <li><p><strong>onDestroy()</strong>：<code>Activity</code>生命周期的终点，在<code>Activity</code>被销毁前触发，此回调的有两种情况被调用：
+                                        </p></li>
+                                    </ul>
+                                    <ol>
+                                        <li>
+                                            用户手动关闭<code>Activity</code>（按返回键）或者系统主动关闭<code>Activity</code>（一般是App进程因内存不足被销毁，导致<code>Activity</code>也被销毁）。
+                                        </li>
+                                        <li>配置变更（设备旋转、语言切换等）。</li>
+                                    </ol>
+                                    <p>简单来说，onCreate()是<code>Activity</code>被创建的时刻，onDestroy()是<code>Activity</code>即将被销毁的时刻。
+                                    </p>
+                                    <p>一个<code>Activity</code>进入onDestroy()之后，理应被GC回收，但是如果此时它仍然被引用（例如被某些网络请求的回调中被引用），那么此<code>Activity</code>就会导致<strong>内存泄漏</strong>，这也是所有Android开发者需要关注其生命周期的原因。
+                                    </p> <h4 id="_1-2-2-onstart-、onstop"><a class="header-anchor"
+                                                                            href="#_1-2-2-onstart-、onstop">#</a>
+                                        1.2.2.onStart()、onStop()</h4>
+                                    <ul>
+                                        <li><strong>onStart()</strong>：当<code>Activity</code>在onCreate()之后不久就会触发此回调，说明了<code>Activity</code>此刻进入了“已开始”的状态，但是此刻的<code>Activity</code>仍然<strong>未获取焦点</strong>。
+                                        </li>
+                                    </ul>
+                                    <p>
+                                        很多Android开发者一直搞不懂Activity为什么会存在一个“<strong>可见但是没有获取焦点</strong>”的状态，会存在这种疑惑的原因是因为Android通常作为<strong>一种移动设备的系统而存在</strong>，而移动设备由于其特殊性，通常也只会同屏存在一个页面，因此“<strong>可见但是没有获取焦点</strong>”这种状态几乎只存在一瞬间（它马上就会遮住之前正在交互的页面），然而我们以电脑系统的角度来看，电脑系统的桌面上基本都是多窗口并存的，然而即使存在了多窗口，用户能交互的也仅仅只有获取焦点的那个窗口。
+                                    </p>
+                                    <p>因此，“<strong>可见但是没有获取焦点</strong>”的窗口，就像是电脑上那些打开着、但被用户正在交互的窗口挡住的那些窗口，假如电脑桌面上存在着一个QQ窗口，然而用户正在编写一个Word文档，那么被Word挡住的那个QQ窗口，就是“<strong>可见但未获取焦点</strong>”的窗口。
+                                    </p>
+                                    <ul>
+                                        <li>
+                                            <strong>onStop()</strong>：当一个<code>Activity</code>从“<strong>可见但是没有获取到焦点</strong>”的状态变为“<strong>完全不可见</strong>”的状态时就会触发此回调，按照上文类比，这种情况通常可以理解为：<strong>电脑桌面上的一个被遮挡的窗口被最小化了</strong>。
+                                        </li>
+                                    </ul>
+                                    <h4 id="_1-2-3-onresume-、onpause"><a class="header-anchor"
+                                                                         href="#_1-2-3-onresume-、onpause">#</a>
+                                        1.2.3.onResume()、onPause()</h4>
+                                    <ul>
+                                        <li><p>
+                                            <strong>onResume()</strong>：当<code>Activity</code>从“<strong>可见但是没有获取焦点</strong>”的状态变成“<strong>可见同时获取焦点</strong>”的状态时，触发此回调，同样按照电脑系统的角度来理解，这种情况通常可以理解为：<strong>电脑桌面上的一个被遮挡的窗口此刻被用户交互了</strong>。
+                                        </p></li>
+                                        <li><p>
+                                            <strong>onPause()</strong>：当<code>Activity</code>从“<strong>可见同时获取焦点</strong>”的状态变成“<strong>可见但是没有获取焦点</strong>”的状态时，触发此回调，同样同样按照电脑系统的角度来理解，这种情况通常可以理解为：<strong>电脑桌面上的一个正在被用户交互的窗口，由于用户操作了其他窗口，导致当前的窗口被遮挡了，也因此失去了焦点</strong>。
+                                        </p></li>
+                                    </ul>
+                                    <h4 id="_1-2-4-前世篇小结"><a class="header-anchor" href="#_1-2-4-前世篇小结">#</a>
+                                        1.2.4.前世篇小结</h4>
+                                    <p>我们从电脑系统的窗口去理解<code>Activity</code>的生命周期：</p>
+                                    <ol>
+                                        <li>启动一个程序的时候，程序就会在电脑桌面上创建一个窗口，创建的那一瞬间（通常会很快，可能不需要1秒）就相当于<code>Activity</code>的onCreate()。
+                                        </li>
+                                        <li>创建完成后，窗口就可以被用户所看见了，被用户看到的那一瞬间就相当于<code>Activity</code>的onStart()。
+                                        </li>
+                                        <li>通常来说，一个新启动的程序会自动获得焦点并可被用户交互，因此onStart()之后，窗口会被置顶到顶层，这一瞬间就相当于<code>Activity</code>的onResume()。
+                                        </li>
+                                        <li>当用户选择其他窗口时，之前交互的窗口并不会消失，而是会失去焦点并被用户最新交互的窗口所遮挡，这一瞬间就相当于<code>Activity</code>的onPause()。
+                                        </li>
+                                        <li>当用户最小化窗口时，窗口就会进入后台（并不是销毁）而且并不能被用户所看见，这一瞬间就相当于进入了<code>Activity</code>的onStop()。
+                                        </li>
+                                        <li>当用户关闭程序亦或者电脑内存不足时，程序被销毁，窗口同时也被销毁了，这一瞬间就相当于进入了<code>Activity</code>的onDestroy()。
+                                        </li>
+                                    </ol>
+                                    <p>
+                                        一个窗口当然可以失去焦点后重新获取焦点，因此onPause()和onResume()可能在生命周期中多次被执行，同理窗口也可以最小化之后重新最大化，onStart()和onStop()也可能在生命周期中多次被执行。只不过对于移动设备来说，几乎不存在页面失去焦点后又重新获得焦点的情况，因为移动设备的页面绝大多数情况都是一个页面完全遮住另外一个页面，即电脑系统中只存在一个最大化的页面，所以移动设备的<code>Activity</code>的生命周期通常只会在onStart()和onStop()两者之间流转。
+                                    </p>
+                                    <p>而一个窗口只能被创建和销毁一次，因此在<code>Activity</code>的生命周期中，onCreate()和onDestroy()只会被调用一次。
+                                    </p>
+                                    <blockquote><p>
+                                        上文中提到，原生的Android生命周期设计中，只提供了进入某个生命周期状态的回调，并没有提供具体的状态的定义，例如onCreate()与onStart()之间的状态叫什么呢，官方的文档提到了这个叫“已创建”的状态，然而这只存在于文本性的文档中，这在代码中并不存在，只能作为一种“共识”的定义。这也为开发者之间沟通生命周期带来了极大的困扰。</p>
+                                    </blockquote>
+                                </div>
                             </section>
                             <footer class="page-edit"><!----> <!----></footer>
                             <div class="page-nav"><p class="inner"><span class="prev"><a class="prev router-link-active"
                                                                                          href="/">
           简介
-        </a></span> <span class="next"><a href="/blogs/2.html">
-          第二篇
-        </a></span></p></div>
+        </a></span> <!----></p></div>
                             <div class="comments-wrapper"><!----></div>
                         </main>
                     </div> <!----></div>
@@ -242,10 +329,10 @@
         </div>
     </div>
 </div>
-<script defer src="/assets/js/app.217d21d8.js"></script>
+<script defer src="/assets/js/app.9584fa7d.js"></script>
 <script defer src="/assets/js/7.082ea9f7.js"></script>
 <script defer src="/assets/js/2.5a3fa7ef.js"></script>
 <script defer src="/assets/js/1.85402d3b.js"></script>
-<script defer src="/assets/js/40.46297f62.js"></script>
+<script defer src="/assets/js/40.095a4831.js"></script>
 </body>
 </html>
