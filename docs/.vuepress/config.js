@@ -28,7 +28,7 @@ module.exports = {
                 collapsable: true,
                 children: [
                     {title: "生命周期与Lifecycle", path: "/blogs/生命周期"},
-                    // {title: "第二篇", path: "/blogs/2"},
+                    {title: "状态保存", path: "/blogs/状态保存"},
                 ]
             }
         ]
