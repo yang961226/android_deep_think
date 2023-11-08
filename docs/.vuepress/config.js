@@ -6,6 +6,10 @@ module.exports = {
         lineNumbers: true
     },
     themeConfig: {
+        type: 'blog',
+        // 内置搜索
+        search: false,
+        subSidebar: 'auto',
         nav: [
             {text: "首页", link: "/"},
             {
@@ -28,7 +32,7 @@ module.exports = {
                 collapsable: true,
                 children: [
                     {title: "生命周期与Lifecycle", path: "/blogs/生命周期"},
-                    {title: "状态保存", path: "/blogs/状态保存"},
+                    {title: "状态保存与SavedState", path: "/blogs/状态保存"},
                 ]
             }
         ]
