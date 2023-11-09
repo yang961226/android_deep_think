@@ -5,6 +5,7 @@ module.exports = {
     markdown: {
         lineNumbers: true
     },
+    head: [['link', {rel: 'icon', href: '/modern_android_logo.png'}]],
     themeConfig: {
         type: 'blog',
         // 内置搜索
