@@ -34,6 +34,7 @@ module.exports = {
                 children: [
                     {title: "生命周期与Lifecycle", path: "/blogs/生命周期"},
                     {title: "状态保存与SavedState", path: "/blogs/状态保存"},
+                    {title: "传世不朽ViewModel", path: "/blogs/ViewModel"},
                 ]
             }
         ]
