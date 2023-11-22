@@ -16,9 +16,11 @@ author: 晴天小庭
 
 <center><img src="./viewModel_res/viewModel_01.png" alt="viewModel_01" style="zoom:67%;" /></center>
 
-可以看见，是通过构造函数传入的，也就是说`ViewModel`在默认情况下，是没有上述的2个功能的，那么`ViewModel`的对于状态保存的意义在哪里呢?
+可以看见，`SavedStateHandle`通过构造函数传入`ViewModel`，也就是说`ViewModel`在默认情况下，是没有「访问组件入参」以及「保存状态」2个功能的，那么`ViewModel`的对于状态保存的意义在哪里呢?
 
 答案是：`ViewModel`可以在「配置更改导致的`Activity`重建」后仍然保存自身的实例。
+
+换句话说，开发者使用`ViewModel`之后，无需担心再花费精力去处理配置更新导致的组件销毁问题，因为`ViewModel`并不会受到影响。
 
 那么这个「配置更改导致的`Activity`重建」后仍可以保存实例的机制又是如何实现的呢？
 
@@ -49,7 +51,7 @@ author: 晴天小庭
 
 ### 1.3、丢掉or进一步扩展，这是一个问题
 
-上一节提到，`onRetainNonConfigurationInstance()`遭遇了程序员的冷落，但是这能证明这个Api是无用的吗？答案是否定的。
+上一节提到，`onRetainNonConfigurationInstance()`遭遇了程序员的冷落，但是这能证明这个Api是无用的吗？
 
 如果你对Binder的机制有一点了解的话，可以知道的是，为了实现跨进程，所有通过Binder传输的对象都要反复的序列化和反序列化，这就导致了性能上的劣势，当然还存在大小的限制。
 
@@ -57,7 +59,7 @@ author: 晴天小庭
 
 但是又回到了上一节的问题，这个Api实在不好用，我们应该直接抛弃它吗？答案是否定的。
 
-1.1节笔者提到的`ViewModel`了一个重要特性：「配置更新后不会销毁」，读者是否觉得它与`onRetainNonConfigurationInstance()`这个Api的特性非常相近呢？对的你没猜错，`ViewModel`就是基于这个Api来实现其跨越配置更改的特性的。
+在1.1节中笔者提到的`ViewModel`了一个重要特性：「配置更新后不会销毁」，读者是否觉得它与`onRetainNonConfigurationInstance()`这个Api的特性非常相近呢？对的你没猜错，`ViewModel`就是基于这个Api来实现其跨越配置更改的特性的。
 
 总结：`onRetainNonConfigurationInstance()`并不是没用了，而是谷歌基于这个Api实现了`ViewModel`，开发者只需要使用`ViewModel`便享受到了这个Api的遍历。相对于难以使用的原生Api，`ViewModel`确实好用特别多。
 
@@ -95,3 +97,35 @@ author: 晴天小庭
 
 以上就是：「`ViewModel`可以在配置更新后不会销毁」的秘密。
 
+## 2、ViewModel是谁？
+
+把`ViewModel`的定义放在第二节是笔者有意为之，在第一节中，笔者为读者展示了`ViewModel`如何解决了开发者一个巨大的痛点，即「处理因配置更新导致的组件销毁从而导致的状态丢失」的问题，读者相比已经对`ViewModel`有了一个基础的认知，但如同上面提到过得一样，跨越配置更新的鸿沟并不是`ViewModel`的全部优点和特性，下面为你逐步掀开ViewModel的~~头盖骨~~面纱。
+
+### 2.1、定义
+
+> `ViewModel` 类是一种业务逻辑或屏幕级状态容器。它用于将状态公开给界面，以及封装相关的业务逻辑。它的主要优点是，它可以缓存状态，并可在配置更改后持久保留相应状态。这意味着在 activity 之间导航时或进行配置更改后（例如旋转屏幕时），界面将无需重新提取数据。
+
+上文中重点讲了`ViewModel`可以让在配置更改后保存自身的存在，从定义中我们可以看出，其实`ViewModel`更重要的一个身份是「状态容器」，换句话说`ViewModel`负责广播状态，而组件（`Activity`、`Fragment`）则回归纯粹UI的本质，引入`ViewModel`之后的不仅是多了一个组件的区别，更多的改变则在于开发范式的转变（关于这个话题下文会讲）。
+
+### 2.2、ViewModel简单使用
+
+简单看一下引入`ViewModel`之后的`Activity`的变化（Fragment代码基本类似，不重复展示）：
+
+<center><img src="./viewModel_res/viewModel_06.png" alt="viewModel_06" style="zoom:67%;" /></center>
+
+还记得`ViewModel`的两个特性吗，这里重温下：
+
+- 状态容器
+- 规避配置更新导致的丢失
+
+图中一个显著的特征是原本应该位于`Activity`中的成员变量被移动到了`ViewModel`的内部，这体现了`ViewModel`作为状态容器的特性，这样做的好处就是让逻辑收拢在了`ViewModel`的内部，这让UI更加容易迁移和调试（因为降低了耦合度）。
+
+「规避配置更新导致的丢失」这个特性在图中不好展示，但是读者可以参考上述的代码自己实现一个小demo，然后旋转屏幕，观察重建的`Activity`中的数据有没有发生丢失现象。
+
+上文提到的「开发范式的转变」指的是开发模式逐渐过渡到MVVM或者其他开发思想中来，一种常见的特征就是状态均以LiveData或者StateFlow的形式出现。
+
+### 2.3、SavedState的使用
+
+> 关于SavedState的使用在「状态保存与SavedState」一章中有详细讲解如何使用，本章不再继续展开
+
+## 3、ViewModel剖析
