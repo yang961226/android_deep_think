@@ -36,14 +36,14 @@ author: 晴天小庭
 
 |          |        `onSaveInstanceState(Bundle)`        | `onRetainNonConfigurationInstance()` |
 | -------- | :-----------------------------------------: | :----------------------------------: |
-| 调用时机 |           组件onPause()之后被调用           |         配置发生改变时被调用         |
+| 调用时机 |           组件onStop()前/后被调用           |         配置发生改变时被调用         |
 | 支持类型 | 只支持基础类型和Parcelable/Serializable类型 |             支持任意类型             |
 | 大小限制 |        受Binder限制，数据不能超过1MB        |             大小不受限制             |
-| 实现原理 |           通过Binder反序列化存储            |            直接存于内存中            |
+| 实现原理 |    先通过Binder反序列化，再存储于内存中     |            直接存于内存中            |
 
 回到本节的标题，为什么`onRetainNonConfigurationInstance()`无论是支持的类型还是大小都遥遥领先于`onSaveInstanceState(Bundle)`，但它却几乎不受程序员的待见呢？
 
-答案就是它的调用时机过于局限了，这也和这个API的设计初衷有关系，因为它只能用于处理「配置更新导致的Activity销毁」的这种场景，因此它并不是每次都进入`onPause()`后都被调用。
+答案就是它的调用时机过于局限了，这也和这个API的设计初衷有关系，因为它只能用于处理「配置更新导致的Activity销毁」的这种场景，因此它并不是每次都进入`onStop()`（高版本在之前，低版本在之后）都被调用。
 
 对于配置发生改变时要保存的状态，`onSaveInstanceState(Bundle)`也能做，即使有类型和大小的限制，程序员们也习惯于统一往`onSaveInstanceState(Bundle)`中实现所有的状态保存逻辑，因为这能降低维护的复杂性。
 
@@ -61,7 +61,7 @@ author: 晴天小庭
 
 在1.1节中笔者提到的`ViewModel`了一个重要特性：「配置更新后不会销毁」，读者是否觉得它与`onRetainNonConfigurationInstance()`这个Api的特性非常相近呢？对的你没猜错，`ViewModel`就是基于这个Api来实现其跨越配置更改的特性的。
 
-总结：`onRetainNonConfigurationInstance()`并不是没用了，而是谷歌基于这个Api实现了`ViewModel`，开发者只需要使用`ViewModel`便享受到了这个Api的遍历。相对于难以使用的原生Api，`ViewModel`确实好用特别多。
+总结：`onRetainNonConfigurationInstance()`并不是没用了，而是谷歌基于这个Api实现了`ViewModel`，开发者只需要使用`ViewModel`便享受到了这个Api的便利。相对于难以使用的原生Api，`ViewModel`确实好用特别多。
 
 > 注意一点的是：「不会因配置更新而销毁」并不是`ViewModel`的全部意义，这个只是它的一个非常重要的特性，`ViewModel`还有许多优秀的特性这点下面会聊到。
 
@@ -129,3 +129,88 @@ author: 晴天小庭
 > 关于SavedState的使用在「状态保存与SavedState」一章中有详细讲解如何使用，本章不再继续展开
 
 ## 3、ViewModel剖析
+
+为了让读者对`ViewModel`的整个体系有大致的理解，这里先把`ViewModel`的几个关键组件列举出来，只需要留个印象即可，后续会串联起来。
+
+### 3.1、核心组件
+
+#### 3.1.1、ViewModel
+
+`ViewModel`无疑是该库中最核心的组件，但是其内部却极其简单，只有两个容器，主要的作用就是存放Tag和Closeable，这两者会在`ViewModel`被关闭的时候被清空。
+
+<center><img src="./viewModel_res/viewModel_07.png" alt="viewModel_07" style="zoom:67%;" /></center>
+
+
+
+可以看到，上面提到的`ViewModel`的特性似乎都与这个类没有任何关系，这只是一个没有任何东西的抽象类，由此可见`ViewModel`的核心机制并不能单纯靠这个类实现。
+
+#### 3.1.2、ViewModelStore、ViewModelStoreOwner
+
+`ViewModelStore`是存放`ViewModel`的仓库类，通过Key来区分不同的`ViewModel`实例。
+
+`ViewModelStoreOwner`和生命周期篇讲过的`LifecycleOwner`基本类似的设计模式，本质只是一个提供实例的接口。
+
+<center><img src="./viewModel_res/viewModel_08.png" alt="viewModel_08" style="zoom:67%;" /></center>
+
+`ViewModelStore`遵循以下原则：
+
+- `ViewModelStore`需要配置更改后仍然得到保留，如果没法保留而被销毁了，那么保存的`ViewModel`实例也要一样，这里简单来说就是map内部的成员实例都不能丢。
+- 如果`ViewModelStore`的持有者不再需要它而且也不会重新创建它，则其所有者需要调用`ViewModelStore`的clear()方法通知它不再使用。
+
+> 以上两条原则虽然对于绝大多数开发者来说并不会使用，因为大部分开发者都不会亲自开发`ViewModelStore`，但是谷歌亲自开发的Jetpack库中，均遵循这两条准则，因此开发者将其理解为`ViewModelStore`的「特性」即可。
+
+#### 3.1.3、ViewModelProvider、Factory
+
+上文提到`ViewModelStore`只是一个存储`ViewModel`的容器，它并没有创建`ViewModel`的功能，而`ViewModelProvider`正好弥补了这个功能。
+
+从图中可以看出两点：
+
+- `ViewModelProvider`通过工厂类创建`ViewModel`
+
+- `ViewModelProvider`的核心代码是get()，其原理就是简单的有就取缓存，没有就用工厂类创建一个`ViewModel`并放置在`ViewModel`与缓存中
+
+> 为什么需要工厂类？因为`ViewModel`和`Fragment`需要在非开发者干预的情况下由系统创建，这种模式只能由反射去实现，工厂类就是定义了不同构造函数的反射创建方式。
+
+<center><img src="./viewModel_res/viewModel_09.png" alt="viewModel_09" style="zoom:67%;" /></center>
+
+#### 3.1.4、小总结
+
+下面以一张图总结各个组件之间的关系：
+
+<center><img src="./viewModel_res/viewModel_10.png" alt="viewModel_10" style="zoom:67%;" /></center>
+
+### 3.2、从使用流程回首ViewModel
+
+上文简单讲解了`ViewModel`几个核心组件的功能，下文将从`ViewModel`的使用流程去将几个组件所处的位置理清楚。
+
+> 需要注意的是，由于需要讲解组件的使用，因此不会使用委托的方式创建ViewModel，同时以Activity为讲解组件。
+
+下面看看`ComponentActivity`中使用`ViewModel`的典型案例：
+
+<center><img src="./viewModel_res/viewModel_11.png" alt="viewModel_11" style="zoom:67%;" /></center>
+
+可以看出，`ViewModel`是由`ViewModelProvider`创建的，这里传入了2个重要参数：
+
+1. `ViewModelStoreOwner`
+2. `Factory`
+
+我们分开讲解两个参数的意义：
+
+传入`ViewModelStoreOwner`的目的并没有什么特别的，答案和这个接口一样简单，就是单纯为了获取`ViewModelStore`，上文中提到，`ViewModelProvider`会在创建`ViewModel`之后，将该实例缓存在`ViewModelStore`中，因此获取StoreOwner也不奇怪了。
+
+至于`Factory`，这里要展开说一下`defaultViewModelProviderFactory`：
+
+这个参数来自于一个接口：`HasDefaultViewModelProviderFactory`：
+
+<center><img src="./viewModel_res/viewModel_12.png" alt="viewModel_12" style="zoom:67%;" /></center>
+
+这个接口是什么意思呢，这个接口是给`ViewModelStoreOwner`实现的，相当于某个`StoreOwner`存在着默认的创建`ViewModel`的工厂类。
+
+上文中提到，`ViewModelProvider`需要从Owner手里获取工厂类来了解如何构建`ViewModel`，对于单个Owner来说，绝大多数情况创建ViewModel的方式都是相同的（大多数情况都是无参或者带`SavedStateHandle`），因此拥有一个「默认工厂」是极大的便利。
+
+开发者可以在`ComponentActivity`中使用`defaultViewModelProviderFactory`的原因恰恰是它也实现了该接口：
+
+<center><img src="./viewModel_res/viewModel_13.png" alt="viewModel_13" style="zoom:67%;" /></center>
+
+可以看出，这是一个创建「参数带有SavedState」的`ViewModel`，同时`SavedState`默认带有`Activity`的getIntent().getExtras()，而在`Fragment`中则是getArugments()。
+
