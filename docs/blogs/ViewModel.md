@@ -140,9 +140,13 @@ author: 晴天小庭
 
 <center><img src="./viewModel_res/viewModel_07.png" alt="viewModel_07" style="zoom:67%;" /></center>
 
+那么`ViewModel`何时被关闭呢？答案是组件遇到「非配置更新导致的销毁」的时候。
 
+简单看看`ComponentActivity`的源码可以看见，只有非配置更新导致的销毁，才会让`ViewModelStore`销毁。
 
-可以看到，上面提到的`ViewModel`的特性似乎都与这个类没有任何关系，这只是一个没有任何东西的抽象类，由此可见`ViewModel`的核心机制并不能单纯靠这个类实现。
+<center><img src="./viewModel_res/viewModel_22.png" alt="viewModel_22" style="zoom:67%;" /></center>
+
+综合来说，`ViewModel`的基类只提供一个销毁时的监听的功能，其创建、销毁由库中的其他组件实现，其业务实现则全部交给开发者。
 
 #### 3.1.2、ViewModelStore、ViewModelStoreOwner
 
@@ -163,23 +167,78 @@ author: 晴天小庭
 
 上文提到`ViewModelStore`只是一个存储`ViewModel`的容器，它并没有创建`ViewModel`的功能，而`ViewModelProvider`正好弥补了这个功能。
 
-从图中可以看出两点：
+从下图中可以看出两点：
 
 - `ViewModelProvider`通过工厂类创建`ViewModel`
 
 - `ViewModelProvider`的核心代码是get()，其原理就是简单的有就取缓存，没有就用工厂类创建一个`ViewModel`并放置在`ViewModel`与缓存中
 
-> 为什么需要工厂类？因为`ViewModel`和`Fragment`需要在非开发者干预的情况下由系统创建，这种模式只能由反射去实现，工厂类就是定义了不同构造函数的反射创建方式。
-
 <center><img src="./viewModel_res/viewModel_09.png" alt="viewModel_09" style="zoom:67%;" /></center>
 
-#### 3.1.4、小总结
+#### 3.1.4、Factory
+
+> 本小节由[CreationExtras 来了，创建 ViewModel 的新方式 - 掘金 (juejin.cn)](https://juejin.cn/post/7072541180667363358?searchId=20231128121208B328021859E9704316AD)中精炼总结得来，可以读原文获取更加详细的信息。
+
+上文提到 `ViewModel` 是使用工厂类来实例化的，因为`ViewModel`和`Fragment`需要在非开发者干预的情况下由系统创建，而工厂类就是定义了不同构造函数的创建方式。
+
+<center><img src="./viewModel_res/viewModel_14.png" alt="viewModel_14" style="zoom:67%;" /></center>
+
+可以看出存在着两套创建方式，一套是带 CreationExtras一套是不带的，导致这种原因是`ViewModel`在2.5.0 版本中新增了一种带 `CreationExtras` 的构建方式。
+
+要讲清楚这一套新增的方式做了什么，我们首先把目光放回以前，看看以前的方式：
+
+##### 3.1.4.1、传统的Factory与其缺陷
+
+假设开发者需要在`ViewModel`中增加非空构造函数，则需要实现对应的工厂类，假设有一个`ViewModel`的构造函数需要Application和一个仓储类作为入参，则需要实现一个这样的工厂类：
+
+<center><img src="./viewModel_res/viewModel_15.png" alt="viewModel_15" style="zoom:67%;" /></center>
+
+可以看出，该`ViewModel`的工厂类和其需要的参数基本要保持一致，这样才可以保证工厂类创建`ViewModel`时拥有所有的参数。
+
+但是我们回顾这种方式有什么缺陷呢？其实缺陷还是挺大的，如下：
+
+- `ViewModel`需要的参数可能较多，而且不同的`ViewModel`也大相径庭，让工厂类丢失了工厂的作用，开发者几乎要为不同的`ViewModel`都创建一个工厂类。
+- 工厂类持有状态，不利于复用。
+
+正因为上述的问题，谷歌提出了一种新的类似于`Bundle`的解决方式，就是上文提到的 `CreationExtras` 。
+
+##### 3.1.4.2、引入CreationExtras的巨变
+
+我们重新看工厂类的另外一种方法，传入了一个`CreationExtras`的参数，这为新的构建方式提供了基础。
+
+<center><img src="./viewModel_res/viewModel_14.png" alt="viewModel_14" style="zoom:67%;" /></center>
+
+`CreationExtras`就像`Activity`跳跃时的Intent传参一样，是通过key-value的方式传递的，因此比较灵活，看看使用了新版之后该如何构建`ViewModel`：
+
+<center><img src="./viewModel_res/viewModel_16.png" alt="viewModel_16" style="zoom:67%;" /></center>
+
+这个时候，Factory不再需要构造函数和任何成员变量了，变成了彻底的「无状态」，更利于复用。
+
+可以看到的是，图中定义了一个key，是传输开发者定义的仓储类的，但是Application使用了一个预定义的Key，这个是谷歌开发者提前定义好的，其他还有几个预定义的key，如下图：
+
+| CreationExtras.Key                                        | Descriptions                                                 |
+| --------------------------------------------------------- | ------------------------------------------------------------ |
+| ViewModelProvider.NewInstanceFactory.VIEW_MODEL_KEY       | ViewModelProvider 可以基于 key 区分多个 VM 实例，VIEW_MODEL_KEY 用来提供当前 VM 的这个 key |
+| ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY | 提供当前 Application context                                 |
+| SavedStateHandleSupport.SAVED_STATE_REGISTRY_OWNER_KEY    | 提供创建 createSavedStateHandle 所需的 SavedStateRegistryOwner |
+| SavedStateHandleSupport.VIEW_MODEL_STORE_OWNER_KEY        | createSavedStateHandle 所需的 ViewModelStoreOwner            |
+| SavedStateHandleSupport.DEFAULT_ARGS_KEY                  | createSavedStateHandle 所需的 Bundle                         |
+
+上图展示的是工厂类如何使用该变量，但是变量是哪里传入的呢，读者还记得工厂类是哪里被使用吗？它是被`ViewModelProvider`使用的，那么`CreateExtras`自然是`ViewModelProvider`所提供的，我们重新看看下图：
+
+<center><img src="./viewModel_res/viewModel_17.png" alt="viewModel_17" style="zoom:67%;" /></center>
+
+可以看到，`ViewModelProvider`在构建`ViewModel`的时候，会将默认参数传给工厂类，这样工厂类就可以在构建`ViewModel`的时候，通过对应的key拿到对应的value，这样就可以满足不同`ViewModel`的构建需要了。
+
+#### 3.1.5、小总结
 
 下面以一张图总结各个组件之间的关系：
 
 <center><img src="./viewModel_res/viewModel_10.png" alt="viewModel_10" style="zoom:67%;" /></center>
 
-### 3.2、从使用流程回首ViewModel
+### 3.2、ViewModel回首掏
+
+#### 3.2.1、从使用流程回首ViewModel
 
 上文简单讲解了`ViewModel`几个核心组件的功能，下文将从`ViewModel`的使用流程去将几个组件所处的位置理清楚。
 
@@ -189,16 +248,7 @@ author: 晴天小庭
 
 <center><img src="./viewModel_res/viewModel_11.png" alt="viewModel_11" style="zoom:67%;" /></center>
 
-可以看出，`ViewModel`是由`ViewModelProvider`创建的，这里传入了2个重要参数：
-
-1. `ViewModelStoreOwner`
-2. `Factory`
-
-我们分开讲解两个参数的意义：
-
-传入`ViewModelStoreOwner`的目的并没有什么特别的，答案和这个接口一样简单，就是单纯为了获取`ViewModelStore`，上文中提到，`ViewModelProvider`会在创建`ViewModel`之后，将该实例缓存在`ViewModelStore`中，因此获取StoreOwner也不奇怪了。
-
-至于`Factory`，这里要展开说一下`defaultViewModelProviderFactory`：
+当生命周期进入onCreate()的时候，通过`ViewModelProvider`来新建一个`MyViewModel`，留意到工厂类传的值是`defaultViewModelProviderFactory`。
 
 这个参数来自于一个接口：`HasDefaultViewModelProviderFactory`：
 
@@ -212,5 +262,74 @@ author: 晴天小庭
 
 <center><img src="./viewModel_res/viewModel_13.png" alt="viewModel_13" style="zoom:67%;" /></center>
 
-可以看出，这是一个创建「参数带有SavedState」的`ViewModel`，同时`SavedState`默认带有`Activity`的getIntent().getExtras()，而在`Fragment`中则是getArugments()。
+可以看出，这是一个创建「参数带有SavedState」的`ViewModel`的工厂类，同时`SavedState`默认带有`Activity`的getIntent().getExtras()，而在`Fragment`中则是getArugments()（图中没体现，读者可以去Fragment的源码中查看）。
 
+因此开发者在`ComponentActivity`中创建`ViewModelProvider`的时候使用的默认工厂其实就是`SavedStateViewModelFactory`。
+
+> 如果你从来没有手动传过这个默认工厂也没关系，`ViweModelProvider` 会自动从`ViewModelStoreOwner`中拿，哪怕 `ViewModelStoreOwner`没有默认工厂也会使用一个最简单的实例化工厂，但这个工厂只能用于简单的无参实例化， 不过鉴于开发者普遍使用 `ComponentActivity`这个问题应该不存在。
+
+#### 3.2.1、重谈ViewModel的by委托
+
+开发者目前比较喜欢的创建方式是使用by委托来创建`ViewModel`，如下：
+
+<center><img src="./viewModel_res/viewModel_18.png" alt="viewModel_18" style="zoom:67%;" /></center>
+
+这种方式背后做了什么呢？我们看看`viewModels`的定义：
+
+<center><img src="./viewModel_res/viewModel_19.png" alt="viewModel_19" style="zoom:67%;" /></center>
+
+可以看出，这个委托还有2个参数，分别是传入`CreationExtras`和`Factory`，读者还记得它们是做什么的吗？如果你忘了建议回去看看第三节。
+
+继续从代码中可以读出，如果开发者不传`Factory`，那么就用使用`ComponentActivity`的默认工厂类，这个上面也提到了，实际上就是`SavedStateViewModelFactory`。
+
+相同的是，如果开发者不传`CreationExtras`，那么就会使用使用`defaultViewModelCreationExtras`。
+
+> `ViewModelLazy`就不进一步研究了，代码非常简单，读者自行研究即可，本质上就是套了一层kotlin的lazy委托来实现懒加载。
+
+
+
+终上所述，在`ComponentActivity`中使用`by viewModels`创建`ViewModel`基本等价于下面的代码：
+
+<center><img src="./viewModel_res/viewModel_20.png" alt="viewModel_20" style="zoom:67%;" /></center>
+
+当然，使用by委托还可以享受懒加载的优势，这样就不用监听生命周期，建议一律使用谷歌官方封装的委托。
+
+## 4、项目实践中看ViewModel
+
+#### 4.1、构造函数为空的ViewModel
+
+对于这种`ViewModel`使用来说最为简单，直接使用委托即可
+
+#### 4.2、需要访问SavedStateHandle的ViewModel
+
+对于这种`ViewModel`使用也非常简单，直接使用委托即可，因为`ComponentActivity`、`Fragment`等常见场景都已经适配了`SavedStateHandle`。
+
+#### 4.3、需要更多参数的ViewModel
+
+#### 4.3.1、自定义工厂类+自定义CreationExtras
+
+对于这种场景，开发者需要在委托中传入自定义的工厂类，例如某个`ViewModel`需要一个`SavedStateHandle`和一个仓储类作为入参，开发者可以实现如下代码：
+
+代码虽然多了很多，但是实际上只多做了几件事：
+
+- 自定义了一个key，在构建`CreationExtra`的时候，使用了该key传入用户自定义的仓储类。需要注意的是，由于`CreationExtras`不可变的设计，开发者需要用`MutableCreationExtras`套住原来的Extras来传递新值。
+
+- 构建工厂类的时候，通过用户自定义的key获取到了仓储类。需要注意的是获取`SavedStateHandle`并不是简单的使用key来获取，而是使用了谷歌官方封装的扩展方法，因为`SavedStateHandle`的构建相对麻烦，还需要访问`SavedStateRegistry`（状态保存一章有提到）。
+
+<center><img src="./viewModel_res/viewModel_21.png" alt="viewModel_21" style="zoom:67%;" /></center>
+
+#### 4.3.2、使用Hilt依赖注入框架实现参数注入
+
+上述提到的工厂类仍然非常麻烦，虽然开发者只需要设计一个工厂类，但是对于不同的`ViewModel`仍需要实现不同的`CreateExtras`取值方式，有没有一种更解耦的方式呢，答案是有的，就是依赖注入。这里推荐使用Jetpack的Hilt。
+
+关于Hilt的具体使用读者可以去安卓开发者文档参考具体使用说明，文章链接如下：
+
+[使用 Hilt 实现依赖项注入](https://developer.android.google.cn/training/dependency-injection/hilt-android?hl=zh-cn)
+
+[将 Hilt 和其他 Jetpack 库一起使用)](https://developer.android.google.cn/training/dependency-injection/hilt-jetpack?hl=zh-cn)
+
+## 5、总结
+
+`ViewModel`是安卓开发进入MVVM时代的产物，后MVVM时代不仅是开发模式与开发思想都发生了剧烈的变化，作为漩涡中心的`ViewModel`的位置的重要性不可小视，然而`ViewModel`的却是许多开发中眼中的「最熟悉的陌生人」，多数开发者只会使用或者做少许的定制，对`ViewModel`的实现机制并不了解，这限制了开发者的能力上限甚至写出了有问题的`ViewModel`代码。
+
+本文从`ViewModel`能够跨越配置更新出发，讲解了ViewModel的核心组件的原理与关系，并提供了一些基础的定制化方案，但仍有许多细节和定制化内容有待读者挖掘。
