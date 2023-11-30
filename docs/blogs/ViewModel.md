@@ -296,17 +296,19 @@ author: 晴天小庭
 
 ## 4、项目实践中看ViewModel
 
-### 4.1、构造函数为空的ViewModel
+### 4.1、构建ViewModel的几种情况
+
+#### 4.1.1、构造函数为空的ViewModel
 
 对于这种`ViewModel`使用来说最为简单，直接使用委托即可
 
-### 4.2、需要访问SavedStateHandle的ViewModel
+#### 4.1.2、需要访问SavedStateHandle的ViewModel
 
 对于这种`ViewModel`使用也非常简单，直接使用委托即可，因为`ComponentActivity`、`Fragment`等常见场景都已经适配了`SavedStateHandle`。
 
-### 4.3、需要更多参数的ViewModel
+#### 4.1.3、需要更多参数的ViewModel
 
-#### 4.3.1、自定义工厂类+自定义CreationExtras
+##### 4.1.3.1、自定义工厂类+自定义CreationExtras
 
 对于这种场景，开发者需要在委托中传入自定义的工厂类，例如某个`ViewModel`需要一个`SavedStateHandle`和一个仓储类作为入参，开发者可以实现如下代码：
 
@@ -318,7 +320,7 @@ author: 晴天小庭
 
 <center><img src="./viewModel_res/viewModel_21.png" alt="viewModel_21" style="zoom:67%;" /></center>
 
-#### 4.3.2、使用Hilt依赖注入框架实现参数注入
+##### 4.1.3.2、使用Hilt依赖注入框架实现参数注入
 
 上述提到的工厂类仍然非常麻烦，虽然开发者只需要设计一个工厂类，但是对于不同的`ViewModel`仍需要实现不同的`CreateExtras`取值方式，有没有一种更解耦的方式呢，答案是有的，就是依赖注入。这里推荐使用Jetpack的Hilt。
 
@@ -327,6 +329,56 @@ author: 晴天小庭
 [使用 Hilt 实现依赖项注入](https://developer.android.google.cn/training/dependency-injection/hilt-android?hl=zh-cn)
 
 [将 Hilt 和其他 Jetpack 库一起使用)](https://developer.android.google.cn/training/dependency-injection/hilt-jetpack?hl=zh-cn)
+
+### 4.2、跨组件通信
+
+在安卓中跨组件通信，特别是`Activity`与它治下的`Fragment`之间的消息通信以及这些`Fragment`之间相互通信一直是一个老大难的问题，因为这涉及了组件引用、生命周期等需要注意的因素：
+
+- 如果某个`Fragment`需要父组件通信，直接获取父组件引用会提高耦合度。
+- 如果多个`Fragment`需要共享同一个变量，变量应该缓存在哪里呢？如果放在父组件中依然会存在耦合度过高的问题（因为依然要访问父组件的真实引用）。
+
+<center><img src="./viewModel_res/viewModel_23.png" alt="viewModel_23" style="zoom:67%;" /></center>
+
+引入了`ViewModel`的开发阶段之后，组件的实际逻辑已经迁移到`ViewModel`之中，因此直接让组件通过成员变量去沟通信息也不合适（这样也有配置更新导致的状态丢失问题）。
+
+那获取其他组件的`ViewModel`不就行了吗？
+
+答案是对的，既然逻辑已经迁移到`ViewModel`中了，同时`ViewModel`也有降低耦合性（避免直接拿组件的实例）、避免配置更新导致销毁等好处，那直接获取组件的`ViewModel`来实现信息的沟通是非常方便的。
+
+那么问题就来到了「如何拿到对应组件的`ViewModel`」？
+
+还记得开发者是如何在`Activity`或者`Fragment`中拿到`ViewModel`的吗，如果你已经忘记了可以重新阅读一下上文，开发者是通过`ViewModelStore`来获取`ViewModel`的，换句话说，「只要拿到`ViewModelStore`，就可以通过`ViewModel`的类来找到对应的`ViewModel`」。
+
+因此开发者可以通过一下开发模式来实现`Fragment`之前的信息沟通：
+
+1. 把需要共享的信息以LiveData、StateFlow等不同形式（根据需要）声明在父组件的`ViewModel`中。
+2. `Fragment`在构建的时候通过父组件的`ViewModelStore`拿到父组件的ViewModel。
+3. `Fragment`通过修改父组件的`ViewModel`中的数据，通知订阅了该数据的其他`Fragment`，以达到`Fragment`之间通信的目的。
+
+如下图所示：
+
+<center><img src="./viewModel_res/viewModel_24.png" alt="viewModel_24" style="zoom:67%;" /></center>
+
+这样避免了以下缺点：
+
+- 避免子组件直接获取父组件引用（引用的是ViewModel）导致耦合度过高。
+- 避免子组件相互引用（通过父组件ViewModel间接通讯）。
+
+那么开发者如何使用代码来落实「`Fragment`获取`Activity`的`ViewModel`」呢？谷歌已经封装好了一个委托方法，叫`activityViewModels()`，和`viewModels()`委托基本没什么区别：
+
+<center><img src="./viewModel_res/viewModel_25.png" alt="viewModel_25" style="zoom:67%;" /></center>
+
+读者可以看`activityViewModels()`的定义，其实并没有什么特别的，就是利用父`Activity`的`ViewModelStore`来获取/创建一个的`ViewModel`，如果你理解了上文的内容，那么这个方法对你来说应该没有什么别的困难的。
+
+通过这种方式，`Activity`下面的所有`Fragment`都可以拿到同一个`ViewModelStore`，因此也可以拿到同一个`ViewModel`。
+
+假如开发者想获取`Fragment`的父`Fragment`的`ViewModel`呢？
+
+虽然谷歌没有提供直接的扩展方法（可能是觉得没什么用），但是可以模仿获取`Activity`的`ViewModel`的方式，写一个获取父`Fragment`的版本：
+
+<center><img src="./viewModel_res/viewModel_26.png" alt="viewModel_26" style="zoom:67%;" /></center>
+
+思路是一样的，围绕着`ViewModelStore`理解即可，这是`ViewModel`的根源。
 
 ## 5、总结
 
