@@ -296,15 +296,15 @@ author: 晴天小庭
 
 ## 4、项目实践中看ViewModel
 
-#### 4.1、构造函数为空的ViewModel
+### 4.1、构造函数为空的ViewModel
 
 对于这种`ViewModel`使用来说最为简单，直接使用委托即可
 
-#### 4.2、需要访问SavedStateHandle的ViewModel
+### 4.2、需要访问SavedStateHandle的ViewModel
 
 对于这种`ViewModel`使用也非常简单，直接使用委托即可，因为`ComponentActivity`、`Fragment`等常见场景都已经适配了`SavedStateHandle`。
 
-#### 4.3、需要更多参数的ViewModel
+### 4.3、需要更多参数的ViewModel
 
 #### 4.3.1、自定义工厂类+自定义CreationExtras
 
